@@ -30,6 +30,7 @@
         .info-note { background: #FFF3E0; padding: 12px; border-radius: 10px; margin-top: 15px; font-size: 12px; color: #E65100; text-align: center; }
         .highlight { background: #fff8e1; }
         .footer { text-align: center; margin-top: 20px; color: white; font-size: 11px; opacity: 0.7; }
+        .expiry-warning { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 10px; text-align: center; }
         @media (max-width: 1000px) {
             .small-input { width: 65px; font-size: 10px; }
             .btn { padding: 3px 6px; font-size: 10px; }
@@ -44,9 +45,10 @@
             <p>نظام إدارة وإرسال الديون</p>
         </div>
 
-        <!-- قفل كلمة المرور -->
+        <!-- قفل كلمة المرور وصلاحية -->
         <div id="lockScreen" class="card" style="text-align: center;">
             <div class="card-title">🔐 قفل الأمان</div>
+            <div id="expiryMessage"></div>
             <p>الرجاء إدخال كلمة المرور لفتح التطبيق</p>
             <input type="password" id="passwordInput" placeholder="كلمة المرور" style="width: 100%; padding: 12px; margin: 15px 0; border-radius: 10px; border: 2px solid #ddd;">
             <button onclick="checkPassword()" style="background: #2b8c5e; color: white; padding: 12px; border: none; border-radius: 10px; width: 100%;">فتح التطبيق</button>
@@ -98,12 +100,36 @@
         let currentSearchId = "";
         let currentSearchName = "";
 
+        // التحقق من تاريخ الصلاحية
+        function checkExpiry() {
+            const expiryDate = localStorage.getItem(`alabed_pharmacy_${PHARMACY_ID}_expiry`);
+            if (!expiryDate) return true;
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const expiry = new Date(expiryDate);
+            
+            if (today > expiry) {
+                document.getElementById('expiryMessage').innerHTML = `
+                    <div class="expiry-warning">
+                        <strong>⛔ انتهت صلاحية الاشتراك</strong><br>
+                        الرجاء التواصل مع الإدارة لتجديد الاشتراك<br>
+                        <small>تاريخ الانتهاء: ${expiryDate}</small>
+                    </div>
+                `;
+                return false;
+            }
+            return true;
+        }
+
         function checkPassword() {
             const inputPass = document.getElementById('passwordInput').value;
             if (inputPass === PHARMACY_PASSWORD) {
-                document.getElementById('lockScreen').style.display = 'none';
-                document.getElementById('appContent').style.display = 'block';
-                loadCustomers();
+                if (checkExpiry()) {
+                    document.getElementById('lockScreen').style.display = 'none';
+                    document.getElementById('appContent').style.display = 'block';
+                    loadCustomers();
+                }
             } else {
                 document.getElementById('lockError').innerHTML = '❌ كلمة المرور غير صحيحة';
             }
@@ -354,6 +380,9 @@
             html += `</tbody>点心`;
             container.innerHTML = html;
         }
+
+        // التحقق من الصلاحية عند تحميل الصفحة
+        checkExpiry();
 
         window.updateCustomer = updateCustomer;
         window.sendToWhatsApp = sendToWhatsApp;
