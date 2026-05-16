@@ -15,6 +15,8 @@
         .search-box { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
         .search-box input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 10px; }
         .search-box button { padding: 12px 25px; background: #2b8c5e; color: white; border: none; border-radius: 10px; cursor: pointer; }
+        .filter-buttons { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-buttons button { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
         .stats { background: #e3f2fd; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; font-weight: bold; }
         .table-wrapper { overflow-x: auto; max-height: 550px; overflow-y: auto; border-radius: 12px; border: 1px solid #eee; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -55,7 +57,7 @@
             <div id="lockError" style="color: red; margin-top: 10px;"></div>
         </div>
 
-        <!-- محتوى التطبيق (مخفي حتى إدخال كلمة المرور) -->
+        <!-- محتوى التطبيق -->
         <div id="appContent" style="display: none;">
             <div class="card">
                 <div class="card-title">🔍 بحث سريع</div>
@@ -64,6 +66,13 @@
                     <input type="text" id="searchName" placeholder="بحث باسم العميل" onkeyup="searchCustomer()">
                     <button onclick="clearSearch()">🗑️ مسح البحث</button>
                 </div>
+                
+                <!-- أزرار الفلتر -->
+                <div class="filter-buttons">
+                    <button id="showAllBtn" onclick="showAllCustomers()" style="background: #2b8c5e; color: white;">👥 إظهار الكل</button>
+                    <button id="showMovementBtn" onclick="showMovementOnly()" style="background: #FF9800; color: white;">📊 إظهار الحركة اليومية فقط</button>
+                </div>
+                
                 <div class="stats" id="stats"></div>
             </div>
 
@@ -80,7 +89,8 @@
                     <strong>📌 تعليمات الاستخدام:</strong><br>
                     • <strong>فاتورة جديدة (+)</strong> = تزيد الرصيد | <strong>سداد (-)</strong> = تقلل الرصيد<br>
                     • <strong>رسالة تذكير</strong>: ترسل حتى لو لم توجد حركة يومية<br>
-                    • <strong>✏️</strong> يمكن تعديل رقم الهاتف بالضغط على الزر بجانبه
+                    • <strong>✏️</strong> يمكن تعديل رقم الهاتف بالضغط على الزر بجانبه<br>
+                    • <strong>📊 إظهار الحركة اليومية فقط</strong>: يعرض العملاء الذين لديهم فاتورة أو سداد فقط
                 </div>
             </div>
         </div>
@@ -99,6 +109,7 @@
         let customers = [];
         let currentSearchId = "";
         let currentSearchName = "";
+        let currentFilter = "all"; // all, movement
 
         // التحقق من تاريخ الصلاحية
         function checkExpiry() {
@@ -135,6 +146,55 @@
             }
         }
 
+        function highlightActiveButton() {
+            const allBtn = document.getElementById('showAllBtn');
+            const movementBtn = document.getElementById('showMovementBtn');
+            if (currentFilter === 'all') {
+                allBtn.style.background = "#2b8c5e";
+                allBtn.style.opacity = "1";
+                movementBtn.style.background = "#FF9800";
+                movementBtn.style.opacity = "0.6";
+            } else {
+                allBtn.style.background = "#2b8c5e";
+                allBtn.style.opacity = "0.6";
+                movementBtn.style.background = "#FF9800";
+                movementBtn.style.opacity = "1";
+            }
+        }
+
+        function showAllCustomers() {
+            currentFilter = "all";
+            applyFilterAndRender();
+            highlightActiveButton();
+        }
+
+        function showMovementOnly() {
+            currentFilter = "movement";
+            applyFilterAndRender();
+            highlightActiveButton();
+        }
+
+        function applyFilterAndRender() {
+            let filtered = customers;
+            
+            // تطبيق البحث أولاً
+            if (currentSearchId || currentSearchName) {
+                filtered = filtered.filter(c => {
+                    const matchId = currentSearchId === '' || c.id.toString().includes(currentSearchId);
+                    const matchName = currentSearchName === '' || c.name.includes(currentSearchName);
+                    return matchId && matchName;
+                });
+            }
+            
+            // تطبيق فلتر الحركة اليومية
+            if (currentFilter === 'movement') {
+                filtered = filtered.filter(c => c.debt > 0 || c.paid > 0);
+            }
+            
+            renderTable(filtered);
+            updateStats();
+        }
+
         function loadCustomers() {
             const key = `alabed_pharmacy_${PHARMACY_ID}`;
             const saved = localStorage.getItem(key);
@@ -143,8 +203,7 @@
             } else {
                 customers = [];
             }
-            renderTable();
-            updateStats();
+            applyFilterAndRender();
         }
 
         function saveCustomers() {
@@ -173,8 +232,7 @@
                 totalDebt: 0
             });
             saveCustomers();
-            renderTable();
-            updateStats();
+            applyFilterAndRender();
             alert('✅ تم إضافة العميل');
         }
 
@@ -185,7 +243,7 @@
             if (newPhone !== null) {
                 customer.phone = newPhone.replace(/[^0-9]/g, '');
                 saveCustomers();
-                renderTable();
+                applyFilterAndRender();
                 alert('✅ تم تحديث رقم الهاتف');
             }
         }
@@ -203,8 +261,7 @@
             if (balanceInput) customer.totalDebt = parseFloat(balanceInput.value) || 0;
             
             saveCustomers();
-            renderTable();
-            updateStats();
+            applyFilterAndRender();
             alert(`✅ تم تحديث ${customer.name}`);
         }
 
@@ -254,13 +311,12 @@
                 if (phone) customer.phone = phone.replace(/[^0-9]/g, '');
                 else return;
                 saveCustomers();
-                renderTable();
+                applyFilterAndRender();
             }
             
             if (updateAfterSend) {
                 saveCustomers();
-                renderTable();
-                updateStats();
+                applyFilterAndRender();
             }
             
             let phone = customer.phone.replace(/^0+/, '').replace(/^967/, '');
@@ -290,13 +346,12 @@
                 if (phone) customer.phone = phone.replace(/[^0-9]/g, '');
                 else return;
                 saveCustomers();
-                renderTable();
+                applyFilterAndRender();
             }
             
             if (updateAfterSend) {
                 saveCustomers();
-                renderTable();
-                updateStats();
+                applyFilterAndRender();
             }
             
             let phone = customer.phone.replace(/^0+/, '').replace(/^967/, '');
@@ -326,8 +381,19 @@
         }
 
         function updateStats() {
-            const hasMovement = customers.filter(c => c.debt > 0 || c.paid > 0).length;
-            document.getElementById('stats').innerHTML = `📊 إجمالي العملاء: ${customers.length} | 🔴 حركة يومية: ${hasMovement}`;
+            let displayCustomers = customers;
+            if (currentSearchId || currentSearchName) {
+                displayCustomers = displayCustomers.filter(c => {
+                    const matchId = currentSearchId === '' || c.id.toString().includes(currentSearchId);
+                    const matchName = currentSearchName === '' || c.name.includes(currentSearchName);
+                    return matchId && matchName;
+                });
+            }
+            if (currentFilter === 'movement') {
+                displayCustomers = displayCustomers.filter(c => c.debt > 0 || c.paid > 0);
+            }
+            const hasMovement = displayCustomers.filter(c => c.debt > 0 || c.paid > 0).length;
+            document.getElementById('stats').innerHTML = `📊 إجمالي العملاء المعروضين: ${displayCustomers.length} | 🔴 لديهم حركة: ${hasMovement}`;
         }
 
         function clearSearch() {
@@ -335,22 +401,16 @@
             document.getElementById('searchName').value = '';
             currentSearchId = "";
             currentSearchName = "";
-            renderTable(customers);
+            applyFilterAndRender();
         }
 
         function searchCustomer() {
             currentSearchId = document.getElementById('searchId').value.trim();
             currentSearchName = document.getElementById('searchName').value.trim();
-            const filtered = customers.filter(c => {
-                const matchId = currentSearchId === '' || c.id.toString().includes(currentSearchId);
-                const matchName = currentSearchName === '' || c.name.includes(currentSearchName);
-                return matchId && matchName;
-            });
-            renderTable(filtered);
+            applyFilterAndRender();
         }
 
-        function renderTable(list = null) {
-            const displayList = list || customers;
+        function renderTable(displayList) {
             const container = document.getElementById('customersTable');
             if (!container) return;
             
@@ -392,6 +452,8 @@
         window.addNewCustomer = addNewCustomer;
         window.editPhone = editPhone;
         window.exportToExcel = exportToExcel;
+        window.showAllCustomers = showAllCustomers;
+        window.showMovementOnly = showMovementOnly;
     </script>
 </body>
 </html>
