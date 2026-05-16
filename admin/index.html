@@ -1,7 +1,367 @@
-            const pharmacy = pharmacies.find(p => p.id == pharmacyId);
-            const customers = allCustomersData[pharmacyId] || [];
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - صيدلية العابد</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1e5799 0%, #2b8c5e 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 20px; }
+        .card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .card-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #1e5799; border-bottom: 3px solid #2b8c5e; padding-bottom: 10px; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 14px; }
+        button { padding: 12px 20px; background: #2b8c5e; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; width: 100%; }
+        button.danger { background: #dc3545; }
+        button.warning { background: #FF9800; }
+        button.info { background: #17a2b8; }
+        .success-msg { background: #d4edda; color: #155724; padding: 12px; border-radius: 10px; margin-top: 10px; text-align: center; }
+        .error-msg { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 10px; margin-top: 10px; text-align: center; }
+        .pharmacy-list { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-top: 15px; }
+        .pharmacy-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ddd; flex-wrap: wrap; gap: 10px; }
+        .pharmacy-item:last-child { border-bottom: none; }
+        .pharmacy-info { flex: 2; }
+        .pharmacy-controls { display: flex; gap: 5px; flex-wrap: wrap; }
+        .pharmacy-controls input { width: 120px; margin: 0; padding: 5px; }
+        .pharmacy-controls button { width: auto; margin: 0; padding: 5px 10px; }
+        .footer { text-align: center; margin-top: 20px; color: white; font-size: 12px; opacity: 0.7; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { background: #e0e0e0; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
+        .tab.active { background: #2b8c5e; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .file-input { background: #f0f8ff; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 2px dashed #2b8c5e; text-align: center; }
+        .file-input input { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 لوحة التحكم - صيدلية العابد</h1>
+            <p>إدارة الصيدليات وكلمات المرور والعملاء</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('pharmacies')">🏥 إدارة الصيدليات</div>
+            <div class="tab" onclick="showTab('customers')">👥 إدارة العملاء</div>
+            <div class="tab" onclick="showTab('import')">📂 استيراد البيانات</div>
+            <div class="tab" onclick="showTab('settings')">⚙️ الإعدادات</div>
+        </div>
+
+        <!-- تبويب إدارة الصيدليات -->
+        <div id="tab-pharmacies" class="tab-content active">
+            <div class="card">
+                <div class="card-title">🔑 كلمة المرور الرئيسية</div>
+                <input type="password" id="masterPassword" placeholder="كلمة المرور الرئيسية">
+                <button onclick="updateMasterPassword()">💾 تحديث كلمة المرور</button>
+                <div id="masterStatus"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🏥 إدارة الصيدليات</div>
+                <div id="pharmaciesList"></div>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button onclick="addPharmacy()">➕ إضافة صيدلية جديدة</button>
+                    <button onclick="saveAllPharmacies()" class="warning">💾 حفظ جميع التغييرات</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- تبويب إدارة العملاء -->
+        <div id="tab-customers" class="tab-content">
+            <div class="card">
+                <div class="card-title">👤 إضافة عميل جديد</div>
+                <select id="targetPharmacy">
+                    <option value="">اختر الصيدلية</option>
+                </select>
+                <input type="number" id="newId" placeholder="رقم العميل (ID)">
+                <input type="text" id="newName" placeholder="اسم العميل">
+                <input type="tel" id="newPhone" placeholder="رقم الهاتف">
+                <button onclick="addCustomerToPharmacy()">➕ إضافة عميل</button>
+                <div id="addCustomerStatus"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📊 بيانات الصيدليات</div>
+                <select id="viewPharmacy" onchange="viewPharmacyData()">
+                    <option value="">اختر صيدلية لعرض بياناتها</option>
+                </select>
+                <div id="pharmacyDataView"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">💾 نسخة احتياطية</div>
+                <button onclick="backupAllData()" class="info">📥 تحميل نسخة احتياطية (JSON)</button>
+                <div id="backupStatus"></div>
+            </div>
+        </div>
+
+        <!-- تبويب استيراد البيانات -->
+        <div id="tab-import" class="tab-content">
+            <div class="card">
+                <div class="card-title">📂 استيراد عملاء من Excel</div>
+                <div class="file-input">
+                    <p>📊 رفع ملف CSV يحتوي على: <strong>رقم العميل, الاسم, رقم الهاتف, الرصيد</strong></p>
+                    <p style="font-size: 12px; color: #666;">مثال: <code>1,محمد أحمد,777777777,5000</code></p>
+                    <select id="importPharmacy">
+                        <option value="">اختر الصيدلية المستهدفة</option>
+                    </select>
+                    <input type="file" id="customersFile" accept=".csv">
+                    <button onclick="importCustomers()">📥 استيراد العملاء</button>
+                </div>
+                <div id="importCustomersStatus"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📂 استيراد ديون من Excel</div>
+                <div class="file-input">
+                    <p>📊 رفع ملف CSV يحتوي على: <strong>رقم العميل, المبلغ</strong> (موجب = فاتورة جديدة، سالب = سداد)</p>
+                    <p style="font-size: 12px; color: #666;">مثال: <code>1,500</code> أو <code>1,-200</code></p>
+                    <select id="debtPharmacy">
+                        <option value="">اختر الصيدلية المستهدفة</option>
+                    </select>
+                    <input type="file" id="debtFile" accept=".csv">
+                    <button onclick="importDebts()">📥 استيراد الديون</button>
+                </div>
+                <div id="importDebtsStatus"></div>
+            </div>
+        </div>
+
+        <!-- تبويب الإعدادات -->
+        <div id="tab-settings" class="tab-content">
+            <div class="card">
+                <div class="card-title">📥 تصدير البيانات</div>
+                <select id="exportPharmacy">
+                    <option value="">اختر الصيدلية للتصدير</option>
+                </select>
+                <button onclick="exportPharmacyData()">📊 تصدير إلى Excel</button>
+                <div id="exportStatus"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">⚠️ إعدادات متقدمة</div>
+                <button class="danger" onclick="resetAllData()">🗑️ إعادة تعيين جميع البيانات</button>
+            </div>
+        </div>
+
+        <div class="footer">لوحة التحكم | صيدلية العابد</div>
+    </div>
+
+    <script>
+        let pharmacies = [
+            { id: 1, name: "صيدلية الحوبان", password: "pharmacy1", expiry: "2026-12-31", url: "pharmacy1.html" },
+            { id: 2, name: "صيدلية المروسي", password: "pharmacy2", expiry: "2026-12-31", url: "pharmacy2.html" },
+            { id: 3, name: "صيدلية الزماني", password: "pharmacy3", expiry: "2026-12-31", url: "pharmacy3.html" },
+            { id: 4, name: "صيدلية شيبان", password: "pharmacy4", expiry: "2026-12-31", url: "pharmacy4.html" },
+            { id: 5, name: "صيدلية الطباخ", password: "pharmacy5", expiry: "2026-12-31", url: "pharmacy5.html" }
+        ];
+
+        let masterPassword = "admin123";
+        let allCustomersData = {};
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        function loadData() {
+            const savedPharmacies = localStorage.getItem('alabed_pharmacies_system');
+            const savedMaster = localStorage.getItem('alabed_master_system');
             
-            if (customers.length === 0) {
+            if (savedPharmacies) pharmacies = JSON.parse(savedPharmacies);
+            if (savedMaster) masterPassword = savedMaster;
+            
+            for (let ph of pharmacies) {
+                const key = `alabed_pharmacy_${ph.id}`;
+                const saved = localStorage.getItem(key);
+                allCustomersData[ph.id] = saved ? JSON.parse(saved) : [];
+            }
+            
+            renderPharmaciesList();
+            updatePharmacySelects();
+        }
+
+        function savePharmacies() {
+            localStorage.setItem('alabed_pharmacies_system', JSON.stringify(pharmacies));
+            // مزامنة التواريخ
+            for (let ph of pharmacies) {
+                localStorage.setItem(`alabed_pharmacy_${ph.id}_expiry`, ph.expiry);
+            }
+        }
+
+        function saveMasterPassword() {
+            localStorage.setItem('alabed_master_system', masterPassword);
+        }
+
+        function savePharmacyData(pharmacyId) {
+            const key = `alabed_pharmacy_${pharmacyId}`;
+            localStorage.setItem(key, JSON.stringify(allCustomersData[pharmacyId] || []));
+        }
+
+        function renderPharmaciesList() {
+            const container = document.getElementById('pharmaciesList');
+            let html = '';
+            pharmacies.forEach((ph, index) => {
+                html += `
+                    <div class="pharmacy-item">
+                        <div class="pharmacy-info">
+                            <strong>${ph.name}</strong><br>
+                            <small>ID: ${ph.id} | الرابط: ${ph.url}</small>
+                        </div>
+                        <div class="pharmacy-controls">
+                            <input type="text" id="pass_${index}" value="${ph.password}" placeholder="كلمة المرور" style="width: 120px;">
+                            <input type="date" id="expiry_${index}" value="${ph.expiry}" style="width: 130px;">
+                            <button onclick="updatePharmacy(${index})">💾</button>
+                            <button onclick="deletePharmacy(${index})" class="danger">🗑️</button>
+                            <button onclick="viewPharmacyCustomers(${ph.id})" class="info">👁️</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function updatePharmacy(index) {
+            pharmacies[index].password = document.getElementById(`pass_${index}`).value;
+            pharmacies[index].expiry = document.getElementById(`expiry_${index}`).value;
+            savePharmacies();
+            
+            // مزامنة تاريخ الصلاحية مع localStorage الخاص بالصيدلية
+            localStorage.setItem(`alabed_pharmacy_${pharmacies[index].id}_expiry`, pharmacies[index].expiry);
+            
+            renderPharmaciesList();
+            updatePharmacySelects();
+            document.getElementById('masterStatus').innerHTML = '<div class="success-msg">✅ تم تحديث الصيدلية</div>';
+            setTimeout(() => document.getElementById('masterStatus').innerHTML = '', 2000);
+        }
+
+        function addPharmacy() {
+            const newId = pharmacies.length + 1;
+            pharmacies.push({
+                id: newId,
+                name: `صيدلية جديدة ${newId}`,
+                password: `pharmacy${newId}`,
+                expiry: "2026-12-31",
+                url: `pharmacy${newId}.html`
+            });
+            allCustomersData[newId] = [];
+            savePharmacies();
+            renderPharmaciesList();
+            updatePharmacySelects();
+            document.getElementById('masterStatus').innerHTML = '<div class="success-msg">✅ تم إضافة صيدلية جديدة</div>';
+            setTimeout(() => document.getElementById('masterStatus').innerHTML = '', 2000);
+        }
+
+        function deletePharmacy(index) {
+            if (confirm(`هل أنت متأكد من حذف ${pharmacies[index].name}؟`)) {
+                const id = pharmacies[index].id;
+                pharmacies.splice(index, 1);
+                delete allCustomersData[id];
+                localStorage.removeItem(`alabed_pharmacy_${id}`);
+                localStorage.removeItem(`alabed_pharmacy_${id}_expiry`);
+                savePharmacies();
+                renderPharmaciesList();
+                updatePharmacySelects();
+                document.getElementById('masterStatus').innerHTML = '<div class="success-msg">✅ تم حذف الصيدلية</div>';
+                setTimeout(() => document.getElementById('masterStatus').innerHTML = '', 2000);
+            }
+        }
+
+        function saveAllPharmacies() {
+            savePharmacies();
+            document.getElementById('masterStatus').innerHTML = '<div class="success-msg">✅ تم حفظ جميع الصيدليات</div>';
+            setTimeout(() => document.getElementById('masterStatus').innerHTML = '', 2000);
+        }
+
+        function updateMasterPassword() {
+            const newPass = document.getElementById('masterPassword').value;
+            if (newPass.length < 4) {
+                document.getElementById('masterStatus').innerHTML = '<div class="error-msg">❌ كلمة المرور يجب أن تكون 4 أحرف على الأقل</div>';
+                return;
+            }
+            masterPassword = newPass;
+            saveMasterPassword();
+            document.getElementById('masterStatus').innerHTML = '<div class="success-msg">✅ تم تحديث كلمة المرور الرئيسية</div>';
+            document.getElementById('masterPassword').value = '';
+            setTimeout(() => document.getElementById('masterStatus').innerHTML = '', 2000);
+        }
+
+        function updatePharmacySelects() {
+            const targetSelect = document.getElementById('targetPharmacy');
+            const viewSelect = document.getElementById('viewPharmacy');
+            const exportSelect = document.getElementById('exportPharmacy');
+            const importSelect = document.getElementById('importPharmacy');
+            const debtSelect = document.getElementById('debtPharmacy');
+            
+            let options = '<option value="">اختر الصيدلية</option>';
+            for (let ph of pharmacies) {
+                options += `<option value="${ph.id}">${ph.name}</option>`;
+            }
+            
+            if (targetSelect) targetSelect.innerHTML = options;
+            if (viewSelect) viewSelect.innerHTML = options;
+            if (exportSelect) exportSelect.innerHTML = options;
+            if (importSelect) importSelect.innerHTML = options;
+            if (debtSelect) debtSelect.innerHTML = options;
+        }
+
+        function addCustomerToPharmacy() {
+            const pharmacyId = document.getElementById('targetPharmacy').value;
+            if (!pharmacyId) {
+                document.getElementById('addCustomerStatus').innerHTML = '<div class="error-msg">❌ الرجاء اختيار الصيدلية</div>';
+                return;
+            }
+            
+            const id = parseInt(document.getElementById('newId').value);
+            const name = document.getElementById('newName').value.trim();
+            const phone = document.getElementById('newPhone').value.trim();
+            
+            if (!id || !name) {
+                document.getElementById('addCustomerStatus').innerHTML = '<div class="error-msg">❌ الرجاء إدخال رقم العميل والاسم</div>';
+                return;
+            }
+            
+            const pharmacyCustomers = allCustomersData[pharmacyId] || [];
+            if (pharmacyCustomers.find(c => c.id === id)) {
+                document.getElementById('addCustomerStatus').innerHTML = '<div class="error-msg">❌ رقم العميل موجود مسبقاً في هذه الصيدلية</div>';
+                return;
+            }
+            
+            pharmacyCustomers.push({
+                id: id,
+                name: name,
+                phone: phone.replace(/[^0-9]/g, ''),
+                debt: 0,
+                paid: 0,
+                totalDebt: 0
+            });
+            
+            allCustomersData[pharmacyId] = pharmacyCustomers;
+            savePharmacyData(pharmacyId);
+            
+            document.getElementById('addCustomerStatus').innerHTML = '<div class="success-msg">✅ تم إضافة العميل بنجاح</div>';
+            document.getElementById('newId').value = '';
+            document.getElementById('newName').value = '';
+            document.getElementById('newPhone').value = '';
+            setTimeout(() => document.getElementById('addCustomerStatus').innerHTML = '', 3000);
+        }
+
+        function viewPharmacyData() {
+            const pharmacyId = document.getElementById('viewPharmacy').value;
+            const container = document.getElementById('pharmacyDataView');
+            
+            if (!pharmacyId) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            const pharmacy = pharmacies.find(p => p.id == pharmacyId);
+            const customersList = allCustomersData[pharmacyId] || [];
+            
+            if (customersList.length === 0) {
                 container.innerHTML = '<div class="success-msg">📭 لا يوجد عملاء في هذه الصيدلية</div>';
                 return;
             }
@@ -9,7 +369,7 @@
             let html = '<div class="pharmacy-list"><strong>' + pharmacy.name + '</strong><br><br>';
             html += '<table style="width:100%; border-collapse:collapse;">';
             html += '<tr style="background:#1e5799; color:white;"><th>#</th><th>الاسم</th><th>الهاتف</th><th>الرصيد</th></tr>';
-            for (let c of customers) {
+            for (let c of customersList) {
                 html += `<tr><td>${c.id}</td><td>${c.name}</td><td>${c.phone}</td><td>${c.totalDebt.toLocaleString()}</td></tr>`;
             }
             html += '</table></div>';
@@ -22,6 +382,140 @@
             showTab('customers');
         }
 
+        function backupAllData() {
+            const backup = {
+                pharmacies: pharmacies,
+                masterPassword: masterPassword,
+                allCustomersData: allCustomersData,
+                backupDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `backup_${new Date().toISOString().slice(0,19)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            document.getElementById('backupStatus').innerHTML = '<div class="success-msg">✅ تم تحميل النسخة الاحتياطية</div>';
+            setTimeout(() => document.getElementById('backupStatus').innerHTML = '', 3000);
+        }
+
+        function importCustomers() {
+            const pharmacyId = document.getElementById('importPharmacy').value;
+            const file = document.getElementById('customersFile').files[0];
+            
+            if (!pharmacyId) {
+                document.getElementById('importCustomersStatus').innerHTML = '<div class="error-msg">❌ الرجاء اختيار الصيدلية</div>';
+                return;
+            }
+            if (!file) {
+                document.getElementById('importCustomersStatus').innerHTML = '<div class="error-msg">❌ الرجاء اختيار ملف</div>';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n');
+                let imported = 0;
+                let errors = 0;
+                
+                const pharmacyCustomers = allCustomersData[pharmacyId] || [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const parts = line.split(',');
+                    if (parts.length >= 4) {
+                        const id = parseInt(parts[0]);
+                        const name = parts[1].trim();
+                        const phone = parts[2].trim().replace(/[^0-9]/g, '');
+                        const totalDebt = parseFloat(parts[3]) || 0;
+                        
+                        if (!isNaN(id) && name && !pharmacyCustomers.find(c => c.id === id)) {
+                            pharmacyCustomers.push({
+                                id: id,
+                                name: name,
+                                phone: phone,
+                                debt: 0,
+                                paid: 0,
+                                totalDebt: totalDebt
+                            });
+                            imported++;
+                        } else {
+                            errors++;
+                        }
+                    }
+                }
+                
+                allCustomersData[pharmacyId] = pharmacyCustomers;
+                savePharmacyData(pharmacyId);
+                
+                document.getElementById('importCustomersStatus').innerHTML = `<div class="success-msg">✅ تم استيراد ${imported} عميل${errors > 0 ? ` (${errors} خطأ)` : ''}</div>`;
+                setTimeout(() => document.getElementById('importCustomersStatus').innerHTML = '', 3000);
+                viewPharmacyData();
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function importDebts() {
+            const pharmacyId = document.getElementById('debtPharmacy').value;
+            const file = document.getElementById('debtFile').files[0];
+            
+            if (!pharmacyId) {
+                document.getElementById('importDebtsStatus').innerHTML = '<div class="error-msg">❌ الرجاء اختيار الصيدلية</div>';
+                return;
+            }
+            if (!file) {
+                document.getElementById('importDebtsStatus').innerHTML = '<div class="error-msg">❌ الرجاء اختيار ملف</div>';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n');
+                let imported = 0;
+                let errors = 0;
+                
+                const pharmacyCustomers = allCustomersData[pharmacyId] || [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const parts = line.split(',');
+                    if (parts.length >= 2) {
+                        const id = parseInt(parts[0]);
+                        const amount = parseFloat(parts[1]);
+                        const customer = pharmacyCustomers.find(c => c.id === id);
+                        
+                        if (customer && !isNaN(amount)) {
+                            if (amount > 0) {
+                                customer.debt = (customer.debt || 0) + amount;
+                            } else if (amount < 0) {
+                                customer.paid = (customer.paid || 0) + Math.abs(amount);
+                            }
+                            imported++;
+                        } else {
+                            errors++;
+                        }
+                    }
+                }
+                
+                allCustomersData[pharmacyId] = pharmacyCustomers;
+                savePharmacyData(pharmacyId);
+                
+                document.getElementById('importDebtsStatus').innerHTML = `<div class="success-msg">✅ تم استيراد ${imported} حركة دين${errors > 0 ? ` (${errors} خطأ)` : ''}</div>`;
+                setTimeout(() => document.getElementById('importDebtsStatus').innerHTML = '', 3000);
+                viewPharmacyData();
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
         function exportPharmacyData() {
             const pharmacyId = document.getElementById('exportPharmacy').value;
             if (!pharmacyId) {
@@ -30,15 +524,15 @@
             }
             
             const pharmacy = pharmacies.find(p => p.id == pharmacyId);
-            const customers = allCustomersData[pharmacyId] || [];
+            const customersList = allCustomersData[pharmacyId] || [];
             
-            if (customers.length === 0) {
+            if (customersList.length === 0) {
                 document.getElementById('exportStatus').innerHTML = '<div class="error-msg">❌ لا يوجد عملاء في هذه الصيدلية</div>';
                 return;
             }
             
             let csv = "رقم العميل,اسم العميل,رقم الهاتف,الرصيد الحالي,فاتورة جديدة,سداد,الرصيد بعد الحركة\n";
-            for (let c of customers) {
+            for (let c of customersList) {
                 const newTotal = c.totalDebt + (c.debt || 0) - (c.paid || 0);
                 csv += `${c.id},${c.name},${c.phone},${c.totalDebt},${c.debt || 0},${c.paid || 0},${newTotal}\n`;
             }
@@ -52,24 +546,6 @@
             URL.revokeObjectURL(url);
             
             document.getElementById('exportStatus').innerHTML = '<div class="success-msg">✅ تم تصدير البيانات</div>';
-            setTimeout(() => document.getElementById('exportStatus').innerHTML = '', 3000);
-        }
-
-        function exportAllData() {
-            let allData = {};
-            for (let ph of pharmacies) {
-                allData[ph.name] = allCustomersData[ph.id] || [];
-            }
-            
-            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `all_pharmacies_data_${new Date().toISOString().slice(0,19)}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            document.getElementById('exportStatus').innerHTML = '<div class="success-msg">✅ تم تصدير جميع البيانات</div>';
             setTimeout(() => document.getElementById('exportStatus').innerHTML = '', 3000);
         }
 
