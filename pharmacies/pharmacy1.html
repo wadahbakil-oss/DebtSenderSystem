@@ -5,40 +5,338 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>صيدلية العابد - الحوبان</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1e5799 0%, #2b8c5e 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header { text-align: center; color: white; margin-bottom: 20px; }
-        .header h1 { font-size: 24px; }
-        .card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        .card-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #1e5799; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .search-box { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .search-box input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 10px; }
-        .search-box button { padding: 12px 25px; background: #2b8c5e; color: white; border: none; border-radius: 10px; cursor: pointer; }
-        .filter-buttons { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .filter-buttons button { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .stats { background: #e3f2fd; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; font-weight: bold; }
-        .table-wrapper { overflow-x: auto; max-height: 550px; overflow-y: auto; border-radius: 12px; border: 1px solid #eee; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { background: #1e5799; color: white; padding: 12px 8px; position: sticky; top: 0; }
-        td { padding: 8px; text-align: center; border-bottom: 1px solid #e0e0e0; }
-        input.small-input { width: 90px; padding: 6px; text-align: center; border-radius: 8px; border: 1px solid #ddd; }
-        .btn { padding: 6px 12px; border: none; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; margin: 2px; }
-        .btn-whatsapp { background: #25D366; color: white; }
-        .btn-sms { background: #2196F3; color: white; }
-        .btn-update { background: #17a2b8; color: white; }
-        .btn-add { background: #FF9800; color: white; }
-        .btn-export { background: #2b8c5e; color: white; }
-        .info-note { background: #FFF3E0; padding: 12px; border-radius: 10px; margin-top: 15px; font-size: 12px; color: #E65100; text-align: center; }
-        .highlight { background: #fff8e1; }
-        .footer { text-align: center; margin-top: 20px; color: white; font-size: 11px; opacity: 0.7; }
-        .expiry-warning { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 10px; text-align: center; }
-        .file-input { background: #f0f8ff; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 2px dashed #2b8c5e; text-align: center; }
-        .file-input input { margin: 10px 0; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e5799 0%, #2b8c5e 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* header */
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* البطاقات */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1e5799;
+            border-bottom: 3px solid #2b8c5e;
+            padding-bottom: 8px;
+        }
+
+        /* البحث */
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #2b8c5e;
+        }
+
+        .search-box button {
+            padding: 10px 25px;
+            background: #2b8c5e;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* أزرار الفلتر */
+        .filter-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .filter-buttons button:active {
+            transform: scale(0.98);
+        }
+
+        /* الإحصائيات */
+        .stats {
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #1e5799;
+        }
+
+        /* الجدول */
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: #1e5799;
+            color: white;
+            padding: 12px 8px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 8px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .highlight {
+            background: #fff8e1;
+        }
+
+        /* الحقول */
+        input.small-input {
+            width: 85px;
+            padding: 6px;
+            text-align: center;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 12px;
+        }
+
+        input.phone-input {
+            width: 110px;
+            padding: 6px;
+            text-align: center;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            font-size: 12px;
+        }
+
+        /* الأزرار */
+        .btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 2px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.02);
+            opacity: 0.9;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+        }
+
+        .btn-sms {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-update {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-add {
+            background: #FF9800;
+            color: white;
+            padding: 10px;
+        }
+
+        .btn-export {
+            background: #2b8c5e;
+            color: white;
+            padding: 10px;
+        }
+
+        .btn-import {
+            background: #6c757d;
+            color: white;
+            padding: 10px;
+        }
+
+        /* استيراد الملفات */
+        .file-input {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 2px dashed #2b8c5e;
+            text-align: center;
+        }
+
+        .file-input p {
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .file-input input {
+            margin: 10px 0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .button-group button {
+            flex: 1;
+        }
+
+        /* ملاحظات */
+        .info-note {
+            background: #FFF3E0;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #E65100;
+            text-align: center;
+        }
+
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .error-msg {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .expiry-warning {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: white;
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        /* استجابة للشاشات الصغيرة */
         @media (max-width: 1000px) {
-            .small-input { width: 65px; font-size: 10px; }
-            .btn { padding: 3px 6px; font-size: 10px; }
-            th, td { font-size: 11px; padding: 5px; }
+            .container {
+                padding: 0;
+            }
+            .card {
+                padding: 15px;
+            }
+            input.small-input {
+                width: 65px;
+                font-size: 10px;
+                padding: 4px;
+            }
+            input.phone-input {
+                width: 90px;
+                font-size: 10px;
+                padding: 4px;
+            }
+            .btn {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+            th, td {
+                font-size: 11px;
+                padding: 6px 4px;
+            }
         }
     </style>
 </head>
@@ -46,21 +344,22 @@
     <div class="container">
         <div class="header">
             <h1>🏥 صيدلية العابد - الحوبان</h1>
-            <p>نظام إدارة وإرسال الديون</p>
+            <p>نظام إدارة وإرسال الديون | تعز - الحوبان - مدخل البريد</p>
         </div>
 
-        <!-- قفل كلمة المرور وصلاحية -->
+        <!-- قفل كلمة المرور -->
         <div id="lockScreen" class="card" style="text-align: center;">
             <div class="card-title">🔐 قفل الأمان</div>
             <div id="expiryMessage"></div>
             <p>الرجاء إدخال كلمة المرور لفتح التطبيق</p>
             <input type="password" id="passwordInput" placeholder="كلمة المرور" style="width: 100%; padding: 12px; margin: 15px 0; border-radius: 10px; border: 2px solid #ddd;">
-            <button onclick="checkPassword()" style="background: #2b8c5e; color: white; padding: 12px; border: none; border-radius: 10px; width: 100%;">فتح التطبيق</button>
+            <button onclick="checkPassword()" style="background: #2b8c5e; color: white; padding: 12px; border: none; border-radius: 10px; width: 100%; font-weight: bold;">فتح التطبيق</button>
             <div id="lockError" style="color: red; margin-top: 10px;"></div>
         </div>
 
         <!-- محتوى التطبيق -->
         <div id="appContent" style="display: none;">
+            <!-- بطاقة البحث والفلتر -->
             <div class="card">
                 <div class="card-title">🔍 بحث سريع</div>
                 <div class="search-box">
@@ -69,7 +368,6 @@
                     <button onclick="clearSearch()">🗑️ مسح البحث</button>
                 </div>
                 
-                <!-- أزرار الفلتر -->
                 <div class="filter-buttons">
                     <button id="showAllBtn" onclick="showAllCustomers()" style="background: #2b8c5e; color: white;">👥 إظهار الكل</button>
                     <button id="showMovementBtn" onclick="showMovementOnly()" style="background: #FF9800; color: white;">📊 إظهار الحركة اليومية فقط</button>
@@ -78,39 +376,44 @@
                 <div class="stats" id="stats"></div>
             </div>
 
+            <!-- بطاقة استيراد البيانات -->
             <div class="card">
                 <div class="card-title">📂 استيراد البيانات</div>
                 
                 <div class="file-input">
-                    <p>📊 استيراد عملاء: <strong>رقم العميل, الاسم, رقم الهاتف, الرصيد</strong></p>
+                    <p><strong>📊 استيراد عملاء</strong> (رقم العميل, الاسم, رقم الهاتف, الرصيد)</p>
+                    <p style="font-size: 11px; color: #666;">مثال: <code>1,محمد أحمد,777777777,5000</code></p>
                     <input type="file" id="importCustomersFile" accept=".csv">
-                    <button onclick="importCustomers()" class="btn-add">📥 استيراد العملاء</button>
+                    <button onclick="importCustomers()" class="btn-import" style="width: auto; padding: 8px 20px;">📥 استيراد العملاء</button>
                 </div>
                 
                 <div class="file-input">
-                    <p>📊 استيراد ديون: <strong>رقم العميل, المبلغ</strong> (موجب فاتورة, سالب سداد)</p>
+                    <p><strong>📊 استيراد ديون</strong> (رقم العميل, المبلغ) موجب = فاتورة جديدة, سالب = سداد</p>
+                    <p style="font-size: 11px; color: #666;">مثال: <code>1,500</code> أو <code>1,-200</code></p>
                     <input type="file" id="importDebtsFile" accept=".csv">
-                    <button onclick="importDebts()" class="btn-add">📥 استيراد الديون</button>
+                    <button onclick="importDebts()" class="btn-import" style="width: auto; padding: 8px 20px;">📥 استيراد الديون</button>
                 </div>
                 
                 <div id="importStatus"></div>
             </div>
 
+            <!-- بطاقة العملاء -->
             <div class="card">
                 <div class="card-title">👥 العملاء والحركة اليومية</div>
                 <div class="table-wrapper">
                     <div id="customersTable"></div>
                 </div>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button class="btn-add" onclick="addNewCustomer()" style="flex:1;">➕ إضافة عميل جديد</button>
-                    <button class="btn-export" onclick="exportToExcel()" style="flex:1;">📊 تصدير إلى Excel</button>
+                
+                <div class="button-group">
+                    <button class="btn-add" onclick="addNewCustomer()">➕ إضافة عميل جديد</button>
+                    <button class="btn-export" onclick="exportToExcel()">📊 تصدير إلى Excel</button>
                 </div>
+                
                 <div class="info-note">
                     <strong>📌 تعليمات الاستخدام:</strong><br>
                     • <strong>فاتورة جديدة (+)</strong> = تزيد الرصيد | <strong>سداد (-)</strong> = تقلل الرصيد<br>
                     • <strong>رسالة تذكير</strong>: ترسل حتى لو لم توجد حركة يومية<br>
-                    • <strong>✏️</strong> يمكن تعديل رقم الهاتف بالضغط على الزر بجانبه<br>
-                    • <strong>📊 إظهار الحركة اليومية فقط</strong>: يعرض العملاء الذين لديهم فاتورة أو سداد فقط
+                    • <strong>✏️</strong> يمكن تعديل رقم الهاتف بالضغط على الزر بجانبه
                 </div>
             </div>
         </div>
@@ -128,24 +431,20 @@
         let customers = [];
         let currentSearchId = "";
         let currentSearchName = "";
-        let currentFilter = "all"; // all, movement
+        let currentFilter = "all";
 
-        // الحصول على كلمة المرور من localStorage (تتزامن مع Admin)
         function getPharmacyPassword() {
             const stored = localStorage.getItem(`alabed_pharmacy_${PHARMACY_ID}_password`);
             if (stored) return stored;
-            return "pharmacy1"; // القيمة الافتراضية
+            return "pharmacy1";
         }
 
-        // التحقق من تاريخ الصلاحية
         function checkExpiry() {
             const expiryDate = localStorage.getItem(`alabed_pharmacy_${PHARMACY_ID}_expiry`);
             if (!expiryDate) return true;
-            
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const expiry = new Date(expiryDate);
-            
             if (today > expiry) {
                 document.getElementById('expiryMessage').innerHTML = `
                     <div class="expiry-warning">
@@ -161,8 +460,7 @@
 
         function checkPassword() {
             const inputPass = document.getElementById('passwordInput').value;
-            const correctPass = getPharmacyPassword();
-            if (inputPass === correctPass) {
+            if (inputPass === getPharmacyPassword()) {
                 if (checkExpiry()) {
                     document.getElementById('lockScreen').style.display = 'none';
                     document.getElementById('appContent').style.display = 'block';
@@ -171,6 +469,18 @@
             } else {
                 document.getElementById('lockError').innerHTML = '❌ كلمة المرور غير صحيحة';
             }
+        }
+
+        function showAllCustomers() {
+            currentFilter = "all";
+            applyFilterAndRender();
+            highlightActiveButton();
+        }
+
+        function showMovementOnly() {
+            currentFilter = "movement";
+            applyFilterAndRender();
+            highlightActiveButton();
         }
 
         function highlightActiveButton() {
@@ -189,21 +499,8 @@
             }
         }
 
-        function showAllCustomers() {
-            currentFilter = "all";
-            applyFilterAndRender();
-            highlightActiveButton();
-        }
-
-        function showMovementOnly() {
-            currentFilter = "movement";
-            applyFilterAndRender();
-            highlightActiveButton();
-        }
-
         function applyFilterAndRender() {
-            let filtered = customers;
-            
+            let filtered = [...customers];
             if (currentSearchId || currentSearchName) {
                 filtered = filtered.filter(c => {
                     const matchId = currentSearchId === '' || c.id.toString().includes(currentSearchId);
@@ -211,23 +508,17 @@
                     return matchId && matchName;
                 });
             }
-            
             if (currentFilter === 'movement') {
-                filtered = filtered.filter(c => c.debt > 0 || c.paid > 0);
+                filtered = filtered.filter(c => (c.debt || 0) > 0 || (c.paid || 0) > 0);
             }
-            
             renderTable(filtered);
-            updateStats();
+            updateStats(filtered);
         }
 
         function loadCustomers() {
             const key = `alabed_pharmacy_${PHARMACY_ID}`;
             const saved = localStorage.getItem(key);
-            if (saved) {
-                customers = JSON.parse(saved);
-            } else {
-                customers = [];
-            }
+            customers = saved ? JSON.parse(saved) : [];
             applyFilterAndRender();
         }
 
@@ -242,12 +533,10 @@
             const phone = prompt('📞 رقم الهاتف:');
             if (!phone) return;
             const id = parseInt(prompt('🆔 رقم العميل:')) || Date.now();
-            
             if (customers.find(c => c.id === id)) {
                 alert('❌ رقم العميل موجود مسبقاً');
                 return;
             }
-            
             customers.push({
                 id: id,
                 name: name,
@@ -276,29 +565,26 @@
         function updateCustomer(id) {
             const customer = customers.find(c => c.id === id);
             if (!customer) return;
-            
             const debtInput = document.getElementById(`debt_${id}`);
             const paidInput = document.getElementById(`paid_${id}`);
             const balanceInput = document.getElementById(`balance_${id}`);
-            
             if (debtInput) customer.debt = parseFloat(debtInput.value) || 0;
             if (paidInput) customer.paid = parseFloat(paidInput.value) || 0;
             if (balanceInput) customer.totalDebt = parseFloat(balanceInput.value) || 0;
-            
             saveCustomers();
             applyFilterAndRender();
             alert(`✅ تم تحديث ${customer.name}`);
         }
 
         function calculateNewTotal(customer) {
-            let newTotal = customer.totalDebt;
+            let newTotal = customer.totalDebt || 0;
             if (customer.debt > 0) newTotal += customer.debt;
             if (customer.paid > 0) newTotal -= customer.paid;
             return newTotal;
         }
 
         function createReminderMessage(customer) {
-            return `سلام الله عليكم يا ${customer.name}، لو سمحت ممكن تسديد الحساب نهاية شهر وبداية الشهر، الصيدلية صيدليتك بأي وقت.\nحسابك: ${customer.totalDebt.toLocaleString()} ريال\n${PHARMACY_NAME}`;
+            return `سلام الله عليكم يا ${customer.name}، لو سمحت ممكن تسديد الحساب نهاية شهر وبداية الشهر، الصيدلية صيدليتك بأي وقت.\nحسابك: ${(customer.totalDebt || 0).toLocaleString()} ريال\n${PHARMACY_NAME}`;
         }
 
         function createMovementMessage(customer, newTotal) {
@@ -316,11 +602,9 @@
         function sendToWhatsApp(id) {
             const customer = customers.find(c => c.id === id);
             if (!customer) return;
-            
             let message = "";
             let updateAfterSend = false;
-            
-            if (customer.debt > 0 || customer.paid > 0) {
+            if ((customer.debt || 0) > 0 || (customer.paid || 0) > 0) {
                 const newTotal = calculateNewTotal(customer);
                 message = createMovementMessage(customer, newTotal);
                 customer.totalDebt = newTotal;
@@ -330,7 +614,6 @@
             } else {
                 message = createReminderMessage(customer);
             }
-            
             if (!customer.phone || customer.phone.length < 9) {
                 const phone = prompt(`📞 رقم هاتف ${customer.name}:`);
                 if (phone) customer.phone = phone.replace(/[^0-9]/g, '');
@@ -338,12 +621,10 @@
                 saveCustomers();
                 applyFilterAndRender();
             }
-            
             if (updateAfterSend) {
                 saveCustomers();
                 applyFilterAndRender();
             }
-            
             let phone = customer.phone.replace(/^0+/, '').replace(/^967/, '');
             window.open(`https://wa.me/967${phone}?text=${encodeURIComponent(message)}`, '_blank');
         }
@@ -351,11 +632,9 @@
         function sendToSMS(id) {
             const customer = customers.find(c => c.id === id);
             if (!customer) return;
-            
             let message = "";
             let updateAfterSend = false;
-            
-            if (customer.debt > 0 || customer.paid > 0) {
+            if ((customer.debt || 0) > 0 || (customer.paid || 0) > 0) {
                 const newTotal = calculateNewTotal(customer);
                 message = createMovementMessage(customer, newTotal);
                 customer.totalDebt = newTotal;
@@ -365,7 +644,6 @@
             } else {
                 message = createReminderMessage(customer);
             }
-            
             if (!customer.phone || customer.phone.length < 9) {
                 const phone = prompt(`📞 رقم هاتف ${customer.name}:`);
                 if (phone) customer.phone = phone.replace(/[^0-9]/g, '');
@@ -373,12 +651,10 @@
                 saveCustomers();
                 applyFilterAndRender();
             }
-            
             if (updateAfterSend) {
                 saveCustomers();
                 applyFilterAndRender();
             }
-            
             let phone = customer.phone.replace(/^0+/, '').replace(/^967/, '');
             window.location.href = `sms:+967${phone}?body=${encodeURIComponent(message)}`;
         }
@@ -389,26 +665,22 @@
                 document.getElementById('importStatus').innerHTML = '<div class="error-msg">❌ الرجاء اختيار ملف</div>';
                 return;
             }
-            
             const reader = new FileReader();
             reader.onload = function(e) {
                 const text = e.target.result;
                 const lines = text.split('\n');
                 let imported = 0;
                 let errors = 0;
-                
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue;
                     if (i === 0 && (line.includes('رقم') || line.includes('id'))) continue;
-                    
                     const parts = line.split(',');
                     if (parts.length >= 4) {
                         const id = parseInt(parts[0]);
                         const name = parts[1].trim();
                         const phone = parts[2].trim().replace(/[^0-9]/g, '');
                         const totalDebt = parseFloat(parts[3]) || 0;
-                        
                         if (!isNaN(id) && name && !customers.find(c => c.id === id)) {
                             customers.push({
                                 id: id,
@@ -424,7 +696,6 @@
                         }
                     }
                 }
-                
                 saveCustomers();
                 applyFilterAndRender();
                 document.getElementById('importStatus').innerHTML = `<div class="success-msg">✅ تم استيراد ${imported} عميل${errors > 0 ? ` (${errors} خطأ)` : ''}</div>`;
@@ -439,25 +710,21 @@
                 document.getElementById('importStatus').innerHTML = '<div class="error-msg">❌ الرجاء اختيار ملف</div>';
                 return;
             }
-            
             const reader = new FileReader();
             reader.onload = function(e) {
                 const text = e.target.result;
                 const lines = text.split('\n');
                 let imported = 0;
                 let errors = 0;
-                
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue;
                     if (i === 0 && (line.includes('رقم') || line.includes('id'))) continue;
-                    
                     const parts = line.split(',');
                     if (parts.length >= 2) {
                         const id = parseInt(parts[0]);
                         const amount = parseFloat(parts[1]);
                         const customer = customers.find(c => c.id === id);
-                        
                         if (customer && !isNaN(amount)) {
                             if (amount > 0) {
                                 customer.debt = (customer.debt || 0) + amount;
@@ -470,7 +737,6 @@
                         }
                     }
                 }
-                
                 saveCustomers();
                 applyFilterAndRender();
                 document.getElementById('importStatus').innerHTML = `<div class="success-msg">✅ تم استيراد ${imported} حركة دين${errors > 0 ? ` (${errors} خطأ)` : ''}</div>`;
@@ -484,13 +750,11 @@
                 alert('❌ لا يوجد عملاء لتصديرهم');
                 return;
             }
-            
             let csv = "رقم العميل,اسم العميل,رقم الهاتف,الرصيد الحالي,فاتورة جديدة,سداد,الرصيد بعد الحركة\n";
             for (let c of customers) {
                 const newTotal = calculateNewTotal(c);
-                csv += `${c.id},${c.name},${c.phone},${c.totalDebt},${c.debt || 0},${c.paid || 0},${newTotal}\n`;
+                csv += `${c.id},${c.name},${c.phone},${c.totalDebt || 0},${c.debt || 0},${c.paid || 0},${newTotal}\n`;
             }
-            
             const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -501,20 +765,9 @@
             alert('✅ تم تصدير العملاء');
         }
 
-        function updateStats() {
-            let displayCustomers = customers;
-            if (currentSearchId || currentSearchName) {
-                displayCustomers = displayCustomers.filter(c => {
-                    const matchId = currentSearchId === '' || c.id.toString().includes(currentSearchId);
-                    const matchName = currentSearchName === '' || c.name.includes(currentSearchName);
-                    return matchId && matchName;
-                });
-            }
-            if (currentFilter === 'movement') {
-                displayCustomers = displayCustomers.filter(c => c.debt > 0 || c.paid > 0);
-            }
-            const hasMovement = displayCustomers.filter(c => c.debt > 0 || c.paid > 0).length;
-            document.getElementById('stats').innerHTML = `📊 إجمالي العملاء المعروضين: ${displayCustomers.length} | 🔴 لديهم حركة: ${hasMovement}`;
+        function updateStats(displayList) {
+            const hasMovement = displayList.filter(c => (c.debt || 0) > 0 || (c.paid || 0) > 0).length;
+            document.getElementById('stats').innerHTML = `📊 إجمالي العملاء المعروضين: ${displayList.length} | 🔴 لديهم حركة اليوم: ${hasMovement}`;
         }
 
         function clearSearch() {
@@ -534,36 +787,43 @@
         function renderTable(displayList) {
             const container = document.getElementById('customersTable');
             if (!container) return;
-            
             if (displayList.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:40px;">📭 لا يوجد عملاء</div>';
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">📭 لا يوجد عملاء</div>';
                 return;
             }
-            
             displayList.sort((a, b) => a.id - b.id);
-            let html = `<tr><thead><tr><th>#</th><th>العميل</th><th>الجوال</th><th>الرصيد</th><th>فاتورة+</th><th>سداد-</th><th>الرصيد بعد</th><th>إجراءات</th></tr></thead><tbody>`;
-            
+            let html = `<table><thead>
+                <tr>
+                    <th>#</th>
+                    <th>العميل</th>
+                    <th>رقم الجوال</th>
+                    <th>الرصيد الحالي</th>
+                    <th>فاتورة جديدة (+)</th>
+                    <th>سداد (-)</th>
+                    <th>الرصيد بعد الحركة</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead><tbody>`;
             for (let c of displayList) {
                 const newTotal = calculateNewTotal(c);
-                html += `<tr class="${c.debt > 0 || c.paid > 0 ? 'highlight' : ''}">
+                html += `<tr class="${(c.debt || 0) > 0 || (c.paid || 0) > 0 ? 'highlight' : ''}">
                     <td>${c.id}</td>
-                    <td style="text-align:right"><strong>${c.name}</strong></td>
-                    <td><input type="text" id="phone_${c.id}" value="${c.phone}" style="width:100px; padding:5px; text-align:center; background:#f9f9f9;" readonly> <button onclick="editPhone(${c.id})" style="background:#17a2b8; color:white; border:none; padding:2px 5px; border-radius:5px;">✏️</button></td>
-                    <td><input type="number" id="balance_${c.id}" value="${c.totalDebt}" step="any" style="width:90px; padding:5px;" class="small-input"></td>
-                    <td><input type="number" id="debt_${c.id}" value="${c.debt}" step="any" style="width:80px; padding:5px; border-color:#e74c3c;" class="small-input"></td>
-                    <td><input type="number" id="paid_${c.id}" value="${c.paid}" step="any" style="width:80px; padding:5px; border-color:#27ae60;" class="small-input"></td>
-                    <td style="color:${newTotal<0?'#e74c3c':'#2b8c5e'}; font-weight:bold;">${newTotal.toLocaleString()}</td>
-                    <td><button onclick="updateCustomer(${c.id})" class="btn btn-update">💾</button>
-                        <button onclick="sendToWhatsApp(${c.id})" class="btn btn-whatsapp">📱</button>
-                        <button onclick="sendToSMS(${c.id})" class="btn btn-sms">✉️</button></td>
+                    <td style="text-align: right;"><strong>${c.name}</strong></td>
+                    <td><input type="text" id="phone_${c.id}" value="${c.phone || ''}" class="phone-input" readonly> <button onclick="editPhone(${c.id})" style="background:#17a2b8; color:white; border:none; padding:3px 6px; border-radius:5px; font-size:11px;">✏️</button></td>
+                    <td><input type="number" id="balance_${c.id}" value="${c.totalDebt || 0}" step="any" class="small-input"></td>
+                    <td><input type="number" id="debt_${c.id}" value="${c.debt || 0}" step="any" class="small-input" style="border-color:#e74c3c;"></td>
+                    <td><input type="number" id="paid_${c.id}" value="${c.paid || 0}" step="any" class="small-input" style="border-color:#27ae60;"></td>
+                    <td style="color:${newTotal < 0 ? '#e74c3c' : '#2b8c5e'}; font-weight: bold;">${newTotal.toLocaleString()}</td>
+                    <td>
+                        <button onclick="updateCustomer(${c.id})" class="btn btn-update" title="تحديث">💾</button>
+                        <button onclick="sendToWhatsApp(${c.id})" class="btn btn-whatsapp" title="واتساب">📱</button>
+                        <button onclick="sendToSMS(${c.id})" class="btn btn-sms" title="رسالة نصية">✉️</button>
+                    </td>
                 </tr>`;
             }
             html += `</tbody>点心`;
             container.innerHTML = html;
         }
-
-        // التحقق من الصلاحية عند تحميل الصفحة
-        checkExpiry();
 
         window.updateCustomer = updateCustomer;
         window.sendToWhatsApp = sendToWhatsApp;
@@ -577,6 +837,8 @@
         window.showMovementOnly = showMovementOnly;
         window.importCustomers = importCustomers;
         window.importDebts = importDebts;
+
+        checkExpiry();
     </script>
 </body>
 </html>
