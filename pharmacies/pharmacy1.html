@@ -33,6 +33,8 @@
         .highlight { background: #fff8e1; }
         .footer { text-align: center; margin-top: 20px; color: white; font-size: 11px; opacity: 0.7; }
         .expiry-warning { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 10px; text-align: center; }
+        .file-input { background: #f0f8ff; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 2px dashed #2b8c5e; text-align: center; }
+        .file-input input { margin: 10px 0; }
         @media (max-width: 1000px) {
             .small-input { width: 65px; font-size: 10px; }
             .btn { padding: 3px 6px; font-size: 10px; }
@@ -77,6 +79,24 @@
             </div>
 
             <div class="card">
+                <div class="card-title">📂 استيراد البيانات</div>
+                
+                <div class="file-input">
+                    <p>📊 استيراد عملاء: <strong>رقم العميل, الاسم, رقم الهاتف, الرصيد</strong></p>
+                    <input type="file" id="importCustomersFile" accept=".csv">
+                    <button onclick="importCustomers()" class="btn-add">📥 استيراد العملاء</button>
+                </div>
+                
+                <div class="file-input">
+                    <p>📊 استيراد ديون: <strong>رقم العميل, المبلغ</strong> (موجب فاتورة, سالب سداد)</p>
+                    <input type="file" id="importDebtsFile" accept=".csv">
+                    <button onclick="importDebts()" class="btn-add">📥 استيراد الديون</button>
+                </div>
+                
+                <div id="importStatus"></div>
+            </div>
+
+            <div class="card">
                 <div class="card-title">👥 العملاء والحركة اليومية</div>
                 <div class="table-wrapper">
                     <div id="customersTable"></div>
@@ -104,12 +124,18 @@
         // ========================================
         const PHARMACY_ID = 1;
         const PHARMACY_NAME = "صيدلية الحوبان";
-        const PHARMACY_PASSWORD = "pharmacy1";
-
+        
         let customers = [];
         let currentSearchId = "";
         let currentSearchName = "";
         let currentFilter = "all"; // all, movement
+
+        // الحصول على كلمة المرور من localStorage (تتزامن مع Admin)
+        function getPharmacyPassword() {
+            const stored = localStorage.getItem(`alabed_pharmacy_${PHARMACY_ID}_password`);
+            if (stored) return stored;
+            return "pharmacy1"; // القيمة الافتراضية
+        }
 
         // التحقق من تاريخ الصلاحية
         function checkExpiry() {
@@ -135,7 +161,8 @@
 
         function checkPassword() {
             const inputPass = document.getElementById('passwordInput').value;
-            if (inputPass === PHARMACY_PASSWORD) {
+            const correctPass = getPharmacyPassword();
+            if (inputPass === correctPass) {
                 if (checkExpiry()) {
                     document.getElementById('lockScreen').style.display = 'none';
                     document.getElementById('appContent').style.display = 'block';
@@ -177,7 +204,6 @@
         function applyFilterAndRender() {
             let filtered = customers;
             
-            // تطبيق البحث أولاً
             if (currentSearchId || currentSearchName) {
                 filtered = filtered.filter(c => {
                     const matchId = currentSearchId === '' || c.id.toString().includes(currentSearchId);
@@ -186,7 +212,6 @@
                 });
             }
             
-            // تطبيق فلتر الحركة اليومية
             if (currentFilter === 'movement') {
                 filtered = filtered.filter(c => c.debt > 0 || c.paid > 0);
             }
@@ -358,6 +383,102 @@
             window.location.href = `sms:+967${phone}?body=${encodeURIComponent(message)}`;
         }
 
+        function importCustomers() {
+            const file = document.getElementById('importCustomersFile').files[0];
+            if (!file) {
+                document.getElementById('importStatus').innerHTML = '<div class="error-msg">❌ الرجاء اختيار ملف</div>';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n');
+                let imported = 0;
+                let errors = 0;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    if (i === 0 && (line.includes('رقم') || line.includes('id'))) continue;
+                    
+                    const parts = line.split(',');
+                    if (parts.length >= 4) {
+                        const id = parseInt(parts[0]);
+                        const name = parts[1].trim();
+                        const phone = parts[2].trim().replace(/[^0-9]/g, '');
+                        const totalDebt = parseFloat(parts[3]) || 0;
+                        
+                        if (!isNaN(id) && name && !customers.find(c => c.id === id)) {
+                            customers.push({
+                                id: id,
+                                name: name,
+                                phone: phone,
+                                debt: 0,
+                                paid: 0,
+                                totalDebt: totalDebt
+                            });
+                            imported++;
+                        } else {
+                            errors++;
+                        }
+                    }
+                }
+                
+                saveCustomers();
+                applyFilterAndRender();
+                document.getElementById('importStatus').innerHTML = `<div class="success-msg">✅ تم استيراد ${imported} عميل${errors > 0 ? ` (${errors} خطأ)` : ''}</div>`;
+                setTimeout(() => document.getElementById('importStatus').innerHTML = '', 3000);
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function importDebts() {
+            const file = document.getElementById('importDebtsFile').files[0];
+            if (!file) {
+                document.getElementById('importStatus').innerHTML = '<div class="error-msg">❌ الرجاء اختيار ملف</div>';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n');
+                let imported = 0;
+                let errors = 0;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    if (i === 0 && (line.includes('رقم') || line.includes('id'))) continue;
+                    
+                    const parts = line.split(',');
+                    if (parts.length >= 2) {
+                        const id = parseInt(parts[0]);
+                        const amount = parseFloat(parts[1]);
+                        const customer = customers.find(c => c.id === id);
+                        
+                        if (customer && !isNaN(amount)) {
+                            if (amount > 0) {
+                                customer.debt = (customer.debt || 0) + amount;
+                            } else if (amount < 0) {
+                                customer.paid = (customer.paid || 0) + Math.abs(amount);
+                            }
+                            imported++;
+                        } else {
+                            errors++;
+                        }
+                    }
+                }
+                
+                saveCustomers();
+                applyFilterAndRender();
+                document.getElementById('importStatus').innerHTML = `<div class="success-msg">✅ تم استيراد ${imported} حركة دين${errors > 0 ? ` (${errors} خطأ)` : ''}</div>`;
+                setTimeout(() => document.getElementById('importStatus').innerHTML = '', 3000);
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
         function exportToExcel() {
             if (customers.length === 0) {
                 alert('❌ لا يوجد عملاء لتصديرهم');
@@ -420,7 +541,7 @@
             }
             
             displayList.sort((a, b) => a.id - b.id);
-            let html = `<table><thead><tr><th>#</th><th>العميل</th><th>الجوال</th><th>الرصيد</th><th>فاتورة+</th><th>سداد-</th><th>الرصيد بعد</th><th>إجراءات</th></tr></thead><tbody>`;
+            let html = `<tr><thead><tr><th>#</th><th>العميل</th><th>الجوال</th><th>الرصيد</th><th>فاتورة+</th><th>سداد-</th><th>الرصيد بعد</th><th>إجراءات</th></tr></thead><tbody>`;
             
             for (let c of displayList) {
                 const newTotal = calculateNewTotal(c);
@@ -454,6 +575,8 @@
         window.exportToExcel = exportToExcel;
         window.showAllCustomers = showAllCustomers;
         window.showMovementOnly = showMovementOnly;
+        window.importCustomers = importCustomers;
+        window.importDebts = importDebts;
     </script>
 </body>
 </html>
